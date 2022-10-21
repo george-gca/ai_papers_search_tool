@@ -1,0 +1,6 @@
+.git/
+data/
+model_data/
+*.tar
+*.log
+*.txt
