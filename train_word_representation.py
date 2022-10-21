@@ -122,7 +122,11 @@ def main(args):
 
     _logger.print('\nStep 4: Build paper representation vectors with fasttext.')
 
-    p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix=f'_pwc')
+    if args.ignore_arxiv_papers:
+        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix=f'_pwc', filter_conferences={'arxiv, none'})
+    else:
+        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix=f'_pwc')
+
     p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.word_dim}dims_pwc')
 
     #####################################
@@ -176,7 +180,7 @@ if __name__ == '__main__':
                         help='model for training word representation')
     parser.add_argument('-w', '--word_dim', type=int, default=150,
                         help='dimensions for word representation')
-    parser.add_argument('-i', '--min_count', type=int, default=10,
+    parser.add_argument('--min_count', type=int, default=10,
                         help='minimal number of word occurences')
     parser.add_argument('-p', '--paper_dim', type=int, default=3,
                         help='dimensions for paper representation')
@@ -188,6 +192,8 @@ if __name__ == '__main__':
                         choices=('debug', 'info', 'warning',
                                  'error', 'critical', 'print'),
                         help='log level to debug')
+    parser.add_argument('-i', '--ignore_arxiv_papers', action='store_true',
+                        help='ignore papers from arXiv and without conference name when building paper vectors')
     parser.add_argument('-s', '--skip_training', action='store_true',
                         help='skip training and load trained model')
 

@@ -5,7 +5,7 @@ import multiprocessing
 import re
 from collections import Counter
 from pathlib import Path
-from typing import Any, List, Set, Tuple
+from typing import Any, List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
@@ -150,12 +150,12 @@ class PaperFinderTrainer(PaperFinder):
         self.logger.print(f'Finished building dictionary with {len(self.dictionary):n} words.\n'
               f'{self.count[0][1]:n} words replaced by {self.count[0][0]} since they are not frequent enough.')
 
-    def build_paper_vectors(self, input_file: Path, filter_titles: Set[str]=None, filter_if_absent: bool=True, suffix: str='') -> None:
+    def build_paper_vectors(self, input_file: Path, suffix: str='', filter_if_absent: bool=True, filter_titles: Optional[Set[str]] = None, filter_conferences: Optional[Set[str]] = None) -> None:
         extension = input_file.suffix[1:] # excluding first char since it is .
         self.load_paper_info(input_file.parent / f'paper_info{suffix}.{extension}')
 
         # load paper abstract and build paper representation vector
-        self.paper_vectors = np.zeros([self.n_papers, self.word_dim])
+
         # associates word to its index in the abstract_words list
         # e.g.: 'model': 1, 'learning': 2
         self.abstract_dict = {}
@@ -169,8 +169,8 @@ class PaperFinderTrainer(PaperFinder):
 
         assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} differ'
 
-        if filter_titles is not None:
-            self.logger.info(f'Filtering papers before building vectors')
+        if filter_titles is not None and len(filter_titles) > 0:
+            self.logger.info(f'Filtering papers by title before building vectors')
             self.logger.info(f'Papers before: {len(df):n}')
             if filter_if_absent:
                 cond = ~df['title'].isin(filter_titles)
@@ -185,7 +185,29 @@ class PaperFinderTrainer(PaperFinder):
 
             assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} now differ'
 
-            self.paper_vectors = np.zeros([self.n_papers, self.word_dim])
+        if filter_conferences is not None and len(filter_conferences) > 0:
+            self.logger.info(f'Filtering papers by conference before building vectors')
+            self.logger.info(f'Papers before: {len(df):n}')
+            if filter_if_absent:
+                cond = ~df['conference'].isin(filter_conferences)
+            else:
+                cond = df['conference'].isin(filter_conferences)
+            indices = df[cond].index
+            df.drop(indices, inplace=True)
+
+            # remove papers from conferences like 'W18-5604' and 'C18-1211', which are usually from aclanthology and are not
+            # with the correct conference name
+            # df = df[~df.conference.str.contains(r'[\w][\d]{2}-[\d]{4}')]
+            indices = df[~df.conference.str.contains(r'[\w][\d]{2}-[\d]{4}')].index
+            df.drop(indices, inplace=True)
+
+            df.reset_index(drop=True, inplace=True)
+            self.papers = [p for i, p in enumerate(self.papers) if i not in indices]
+            self.logger.info(f'Papers after: {len(df):n}')
+            self.n_papers = len(self.papers)
+
+            assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} now differ'
+
 
         def _build_paper_vector(row):
             index = row.name
@@ -221,6 +243,7 @@ class PaperFinderTrainer(PaperFinder):
                 else:
                     self.papers[index].abstract_freq[word_idx] = 1
 
+        self.paper_vectors = np.zeros([self.n_papers, self.word_dim])
         tqdm.pandas(desc="Building papers' vectors", unit='abstract')
         df.progress_apply(_build_paper_vector, axis=1)
 
