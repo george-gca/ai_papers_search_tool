@@ -123,7 +123,7 @@ def main(args):
     _logger.print('\nStep 4: Build paper representation vectors with fasttext.')
 
     if args.ignore_arxiv_papers:
-        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix=f'_pwc', filter_conferences={'arxiv, none'})
+        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix=f'_pwc', filter_conferences={'arxiv', 'none'})
     else:
         p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix=f'_pwc')
 

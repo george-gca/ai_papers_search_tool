@@ -150,7 +150,7 @@ class PaperFinderTrainer(PaperFinder):
         self.logger.print(f'Finished building dictionary with {len(self.dictionary):n} words.\n'
               f'{self.count[0][1]:n} words replaced by {self.count[0][0]} since they are not frequent enough.')
 
-    def build_paper_vectors(self, input_file: Path, suffix: str='', filter_if_absent: bool=True, filter_titles: Optional[Set[str]] = None, filter_conferences: Optional[Set[str]] = None) -> None:
+    def build_paper_vectors(self, input_file: Path, suffix: str='', filter_titles: Optional[Set[str]] = None, filter_conferences: Optional[Set[str]] = None) -> None:
         extension = input_file.suffix[1:] # excluding first char since it is .
         self.load_paper_info(input_file.parent / f'paper_info{suffix}.{extension}')
 
@@ -172,10 +172,7 @@ class PaperFinderTrainer(PaperFinder):
         if filter_titles is not None and len(filter_titles) > 0:
             self.logger.info(f'Filtering papers by title before building vectors')
             self.logger.info(f'Papers before: {len(df):n}')
-            if filter_if_absent:
-                cond = ~df['title'].isin(filter_titles)
-            else:
-                cond = df['title'].isin(filter_titles)
+            cond = df['title'].isin(filter_titles)
             indices = df[cond].index
             df.drop(indices, inplace=True)
             df.reset_index(drop=True, inplace=True)
@@ -188,10 +185,7 @@ class PaperFinderTrainer(PaperFinder):
         if filter_conferences is not None and len(filter_conferences) > 0:
             self.logger.info(f'Filtering papers by conference before building vectors')
             self.logger.info(f'Papers before: {len(df):n}')
-            if filter_if_absent:
-                cond = ~df['conference'].isin(filter_conferences)
-            else:
-                cond = df['conference'].isin(filter_conferences)
+            cond = df['conference'].isin(filter_conferences)
             indices = df[cond].index
             df.drop(indices, inplace=True)
 
