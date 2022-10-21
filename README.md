@@ -5,7 +5,7 @@ Automatic paper clustering and search tool by [fasText from Facebook Research](h
 - [AI Papers Scrapper](https://github.com/george-gca/ai_papers_scrapper) - Download papers pdfs and other information from main AI conferences
 - [AI Papers Cleaner](https://github.com/george-gca/ai_papers_cleaner) - Extract text from papers PDFs and abstracts, and remove uninformative words
 - this project - Automatic paper clustering
-- AI Papers Searcher - Web app to search papers by keywords or similar papers
+- [AI Papers Searcher](https://github.com/george-gca/ai_papers_searcher) - Web app to search papers by keywords or similar papers
 
 ## Requirements
 
