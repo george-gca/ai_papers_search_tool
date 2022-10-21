@@ -32,7 +32,3 @@ elif [ -n "$skip_train_paper_finder" ]; then
     echo -e "\nBuilding paper vectors only"
     $run_command python train_word_representation.py -s -l info -c $n_clusters
 fi
-
-if [ -n "$clean_urls" ]; then
-    $run_command python csv_joiner.py -y 2017 --only_urls -l info
-fi
