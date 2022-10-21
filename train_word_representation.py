@@ -122,8 +122,8 @@ def main(args):
 
     _logger.print('\nStep 4: Build paper representation vectors with fasttext.')
 
-    p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather')
-    p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.word_dim}dims')
+    p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix=f'_pwc')
+    p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.word_dim}dims_pwc')
 
     #####################################
 
@@ -131,10 +131,10 @@ def main(args):
         '\nStep 5: Reduce dimensions and then apply k-means clustering.')
 
     p2v.reduce_paper_vectors_dim(args.paper_dim, perplexity=args.perplexity)
-    p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.paper_dim}dims')
+    p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.paper_dim}dims_pwc')
 
     p2v.clustering_papers(clusters=args.clusters)
-    p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.clusters}_clusters')
+    p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.clusters}_clusters_pwc')
 
     not_informative_words = [
         'data',
