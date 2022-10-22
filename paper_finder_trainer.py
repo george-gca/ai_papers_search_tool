@@ -172,11 +172,12 @@ class PaperFinderTrainer(PaperFinder):
         if filter_titles is not None and len(filter_titles) > 0:
             self.logger.info(f'Filtering papers by title before building vectors')
             self.logger.info(f'Papers before: {len(df):n}')
-            cond = df['title'].isin(filter_titles)
-            indices = df[cond].index
+
+            indices = df[df['title'].isin(filter_titles)].index
             df.drop(indices, inplace=True)
             df.reset_index(drop=True, inplace=True)
             self.papers = [p for i, p in enumerate(self.papers) if i not in indices]
+
             self.logger.info(f'Papers after: {len(df):n}')
             self.n_papers = len(self.papers)
 
@@ -185,18 +186,19 @@ class PaperFinderTrainer(PaperFinder):
         if filter_conferences is not None and len(filter_conferences) > 0:
             self.logger.info(f'Filtering papers by conference before building vectors')
             self.logger.info(f'Papers before: {len(df):n}')
-            cond = df['conference'].isin(filter_conferences)
-            indices = df[cond].index
+
+            indices = df[df['conference'].isin(filter_conferences)].index
             df.drop(indices, inplace=True)
+            df.reset_index(drop=True, inplace=True)
+            self.papers = [p for i, p in enumerate(self.papers) if i not in indices]
 
             # remove papers from conferences like 'W18-5604' and 'C18-1211', which are usually from aclanthology and are not
             # with the correct conference name
-            # df = df[~df.conference.str.contains(r'[\w][\d]{2}-[\d]{4}')]
-            indices = df[~df.conference.str.contains(r'[\w][\d]{2}-[\d]{4}')].index
+            indices = df[df.conference.str.contains(r'[\w][\d]{2}-[\d]{4}')].index
             df.drop(indices, inplace=True)
-
             df.reset_index(drop=True, inplace=True)
             self.papers = [p for i, p in enumerate(self.papers) if i not in indices]
+
             self.logger.info(f'Papers after: {len(df):n}')
             self.n_papers = len(self.papers)
 
