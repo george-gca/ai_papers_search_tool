@@ -7,6 +7,8 @@ Automatic paper clustering and search tool by [fasText from Facebook Research](h
 - this project - Automatic paper clustering
 - [AI Papers Searcher](https://github.com/george-gca/ai_papers_searcher) - Web app to search papers by keywords or similar papers
 
+I also added support for more conferences in a single web app, customized it a little further, and hosted it on [PythonAnywhere](https://www.pythonanywhere.com/). You can see a running example of the web app [here](https://georgegca.pythonanywhere.com/).
+
 ## Requirements
 
 [Docker](https://www.docker.com/) or, for local installation:
