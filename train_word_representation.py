@@ -27,7 +27,7 @@ def main(args):
 
     max_ngram = 5
 
-    if not args.skip_training:
+    if args.build_dictionary:
         _logger.print('\nStep 1: Removes rare words to build a suitable size of dictionary.')
 
         corpus_files = [data_dir / c / 'pdfs_clean.csv' for c in conferences_pdfs]
@@ -50,6 +50,7 @@ def main(args):
 
         #####################################
 
+    if args.detect_ngrams:
         _logger.print('\nStep 2: Detect n-grams by their appearance frequency. Then re-build a new corpus.')
         for i, n in enumerate(reversed(range(2, max_ngram + 1))):
             p2v.detect_ngrams(n, args.ngram_threshold + i*args.ngram_threshold_step)
@@ -66,12 +67,13 @@ def main(args):
 
         #####################################
 
+    if args.train:
         _logger.print('\nStep 3: Train word representation with fasttext.')
-        p2v.train_words_model(corpus_ngram_file, n_words=args.max_dictionary_words, model=args.train_model, min_count=args.min_count)
+        p2v.train_words_model(corpus_ngram_file, n_words=args.max_dictionary_words, model=args.model, min_count=args.min_count)
         p2v.build_similar_dictionary()
 
-    else:  # if args.skip_training
-        p2v.load_words_model(str(model_dir / f'fasttext_{args.train_model}_{args.max_dictionary_words}w.bin'))
+    else:
+        p2v.load_words_model(str(model_dir / f'fasttext_{args.model}_{args.max_dictionary_words}w.bin'))
 
     words_to_check = [
         'bert',
@@ -175,7 +177,7 @@ if __name__ == '__main__':
                         help='increase threshold as ngram size decreases')
 
     # args for training / clustering
-    parser.add_argument('-m', '--train_model', type=str, default='skipgram',
+    parser.add_argument('-m', '--model', type=str, default='skipgram',
                         choices=('skipgram', 'cbow'),
                         help='model for training word representation')
     parser.add_argument('-w', '--word_dim', type=int, default=150,
@@ -194,8 +196,13 @@ if __name__ == '__main__':
                         help='log level to debug')
     parser.add_argument('-i', '--ignore_arxiv_papers', action='store_true',
                         help='ignore papers from arXiv and without conference name when building paper vectors')
-    parser.add_argument('-s', '--skip_training', action='store_true',
-                        help='skip training and load trained model')
+    parser.add_argument('--build_dictionary', action='store_true',
+                        help='build dictionary')
+    parser.add_argument('--detect_ngrams', action='store_true',
+                        help='detect n-grams')
+    parser.add_argument('--train', action='store_true',
+                        help='train words model')
+
 
     args = parser.parse_args()
 

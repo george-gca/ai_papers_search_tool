@@ -22,11 +22,11 @@ export OMP_NUM_THREADS=15
 if [ -n "$train_paper_finder" ]; then
     if [ -n "$create_for_app" ]; then
         echo -e "\nBuilding word representation with fasttext for web app"
-        $run_command python train_word_representation.py -l info -c $n_clusters -d 30000 -t $ngram_threshold --ngram_threshold_step $ngram_threshold_step -i
+        $run_command python train_word_representation.py -l info -c $n_clusters -d 30000 -t $ngram_threshold --ngram_threshold_step $ngram_threshold_step -i --build_dictionary --detect_ngrams --train
     fi
 
     echo -e "\nBuilding word representation with fasttext"
-    $run_command python train_word_representation.py -l info -c $n_clusters -t $ngram_threshold --ngram_threshold_step $ngram_threshold_step
+    $run_command python train_word_representation.py -l info -c $n_clusters -t $ngram_threshold --ngram_threshold_step $ngram_threshold_step --build_dictionary --detect_ngrams --train
 
 elif [ -n "$skip_train_paper_finder" ]; then
     echo -e "\nBuilding paper vectors only"
