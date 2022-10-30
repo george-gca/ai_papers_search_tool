@@ -167,6 +167,8 @@ class PaperFinderTrainer(PaperFinder):
             df = pd.read_feather(input_file)
             df.dropna(inplace=True)
 
+        # self.papers is built from paper_info_pwc.feather
+        # df is built from abstracts_5gram.feather
         assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} differ'
 
         if filter_titles is not None and len(filter_titles) > 0:
