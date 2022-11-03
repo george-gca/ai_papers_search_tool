@@ -14,8 +14,7 @@ locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 def main(args):
     log_dir = Path('logs/').expanduser()
     log_dir.mkdir(exist_ok=True)
-    log_file = log_dir / 'train_word_model.log'
-    setup_log(args, log_file)
+    setup_log(args.log_level, log_dir / 'train_word_model.log')
 
     data_dir = Path(args.data_dir).expanduser()
     model_dir = Path(args.model_dir).expanduser()
