@@ -21,6 +21,7 @@ from timer import Timer
 
 # Use '' for auto, or force e.g. to 'en_US.UTF-8'
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+TQDM_NCOLS = 175
 
 
 class PaperFinderTrainer(PaperFinder):
@@ -57,7 +58,7 @@ class PaperFinderTrainer(PaperFinder):
     def _create_ngrams_count(self, word_list: List[str], n: int, top_n: int) -> List[Tuple[List[str], int]]:
         with Timer(name=f'Creating {n}-grams'):
             ngrams = [l for l in tqdm(zip(
-                *(word_list[i:] for i in range(n))), total=len(word_list)+1-n, unit='ngram', desc=f'Creating {n}-grams') if not self.unk in l and not self.eop in l]
+                *(word_list[i:] for i in range(n))), total=len(word_list)+1-n, unit='ngram', desc=f'Creating {n}-grams', ncols=TQDM_NCOLS) if not self.unk in l and not self.eop in l]
             self.logger.info(f'\nCreated {len(ngrams):n} {n}-grams')
 
         with Timer(name=f'Counting {n}-grams'):
@@ -138,7 +139,7 @@ class PaperFinderTrainer(PaperFinder):
                 self.count = Counter(self.words).most_common()
 
         self.dictionary = { w for w, _ in self.count if w != self.unk and w != self.eop }
-        self.words = [w if w in self.dictionary else self.unk for w in tqdm(self.words, unit='word', desc='Rebuilding list of words')]
+        self.words = [w if w in self.dictionary else self.unk for w in tqdm(self.words, unit='word', desc='Rebuilding list of words', ncols=TQDM_NCOLS)]
 
         with Timer(name='Counting words occurrences after removing least frequent ones'):
             if self.max_dictionary_words > 0:
@@ -242,14 +243,14 @@ class PaperFinderTrainer(PaperFinder):
                     self.papers[index].abstract_freq[word_idx] = 1
 
         self.paper_vectors = np.zeros([self.n_papers, self.word_dim])
-        tqdm.pandas(desc="Building papers' vectors", unit='abstract')
+        tqdm.pandas(desc="Building papers' vectors", unit='abstract', ncols=TQDM_NCOLS)
         df.progress_apply(_build_paper_vector, axis=1)
 
         self.nearest_neighbours = KDTree(self.paper_vectors)
 
     def build_similar_dictionary(self, count: int = 5) -> None:
         similar_dictionary = {word: self.get_most_similar_words(word, count) for word in tqdm(
-            self.words, desc='Creating dictionary of similar words', unit='word')}
+            self.words, desc='Creating dictionary of similar words', unit='word', ncols=TQDM_NCOLS)}
 
         self._save_object(self.model_dir / 'similar_dictionary', similar_dictionary)
 
@@ -259,7 +260,7 @@ class PaperFinderTrainer(PaperFinder):
         self.paper_cluster_ids = estimator.labels_
         self.cluster_abstract_freq = []
 
-        for i in tqdm(range(clusters), desc='Generating clusters of frequent words'):
+        for i in tqdm(range(clusters), desc='Generating clusters of frequent words', ncols=TQDM_NCOLS):
             cluster_papers_index = [j for j in range(
                 self.n_papers) if self.paper_cluster_ids[j] == i]
 
@@ -279,7 +280,7 @@ class PaperFinderTrainer(PaperFinder):
             df = pd.read_feather(src_file)
 
         self.logger.print(f'Building new text file on {dest_file}')
-        tqdm.pandas(unit='word', desc=f'Replacind words by n-grams')
+        tqdm.pandas(unit='word', desc=f'Replacind words by n-grams', ncols=TQDM_NCOLS)
         df[column] = df[column].progress_apply(self._replace_words_by_ngrams)
 
         if 'csv' in dest_file.suffix:
@@ -306,7 +307,7 @@ class PaperFinderTrainer(PaperFinder):
             chunk_size = 500_000 // n # words
             new_words = []
 
-            with tqdm(total=math.ceil(len(self.words) / chunk_size) * len(ngrams_set), unit='chunk', desc=f'Replacing words by frequent {n}-grams') as pbar:
+            with tqdm(total=math.ceil(len(self.words) / chunk_size) * len(ngrams_set), unit='chunk', desc=f'Replacing words by frequent {n}-grams', ncols=TQDM_NCOLS) as pbar:
                 for chunk in _chunks(self.words, chunk_size):
                     words = f' {" ".join(chunk)} '
                     for ngram in ngrams_set:
@@ -377,7 +378,7 @@ class PaperFinderTrainer(PaperFinder):
         }
 
         self.papers: List[PaperInfo] = []
-        tqdm.pandas(unit='paper', desc='Reading papers info')
+        tqdm.pandas(unit='paper', desc='Reading papers info', ncols=TQDM_NCOLS)
         df.progress_apply(_add_paper_info, axis=1, papers_info=self.papers, accents=accents)
 
         self.n_papers = len(self.papers)
