@@ -101,6 +101,7 @@ def main(args):
         'super_resolution',
         'survey',
         'transformer',
+        'transformer_based'
         'visual_dialog',
         'visual_dialog generative',
         'visual_dialog pre_training',
