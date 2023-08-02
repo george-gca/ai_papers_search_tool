@@ -39,12 +39,10 @@ def main(args):
 
         # removing 1st common word, since it is UNK
         n_common = 50
-        most_common_words = "\n".join(
-            f'{k}: {v:n}' for k, v in p2v.count[1:n_common+1])
+        most_common_words = "\n".join(f'{k}: {v:n}' for k, v in p2v.count[1:n_common+1])
         _logger.print(f'\nCheck {n_common} most common words:\n{most_common_words}')
 
-        least_common_words = "\n".join(
-            f'{k}: {v:n}' for k, v in p2v.count[-n_common:])
+        least_common_words = "\n".join(f'{k}: {v:n}' for k, v in p2v.count[-n_common:])
         _logger.print(f'\nCheck {n_common} least common words:\n{least_common_words}')
 
         #####################################
@@ -81,12 +79,15 @@ def main(args):
         'catastrophic_forgetting',
         'continual_learning',
         'dataset',
+        'dall_e',
         'explainability',
         'explanatory_interactive_learning',
+        'gpt',
         'incremental_learning',
         'interactive_learning',
         'interpretability',
         'large_scale pre_training',
+        'midjourney',
         'model_editing',
         'multimodal_dataset',
         'multimodal_feature',
