@@ -30,5 +30,5 @@ if [ -n "$train_paper_finder" ]; then
 
 elif [ -n "$skip_train_paper_finder" ]; then
     echo -e "\nBuilding paper vectors only"
-    $run_command python train_word_representation.py -s -l info -c $n_clusters
+    $run_command python train_word_representation.py -l info -c $n_clusters
 fi
