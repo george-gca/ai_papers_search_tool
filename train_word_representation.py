@@ -56,7 +56,7 @@ def main(args):
         p2v.create_corpus_with_phrases(corpus_ngram_file)
         p2v.convert_text_with_phrases(data_dir / 'abstracts_clean_pwc.feather', data_dir / f'abstracts_{max_ngram}gram.feather')
 
-        abstract_files = [Path(c) / 'abstracts_clean.csv' for c in supported_conferences]
+        abstract_files = [data_dir / c / 'abstracts_clean.csv' for c in supported_conferences]
         abstract_files = [c for c in abstract_files if c.exists()]
 
         for abstract_file in abstract_files:
