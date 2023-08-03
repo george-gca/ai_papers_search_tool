@@ -1,7 +1,6 @@
 import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Union
 
 
 supported_conferences = [
@@ -117,13 +116,18 @@ supported_conferences = [
 conferences_pdfs = [c for c in supported_conferences if not c.startswith('kdd') and not c.startswith('sigchi')]
 
 
-def setup_log(log_level: str = 'warning', log_file: Union[str, Path] = Path('run.log'), file_log_level: str = 'info', logs_to_silence: list[str] = []) -> None:
+def setup_log(
+        log_level: str = 'warning',
+        log_file: str | Path = Path('run.log'),
+        file_log_level: str = 'info',
+        logs_to_silence: list[str] = [],
+        ) -> None:
     """
     Setup the logging.
 
     Args:
         log_level (str): stdout log level. Defaults to 'warning'.
-        log_file (Union[str, Path]): file where the log output should be stored. Defaults to 'run.log'.
+        log_file (str | Path): file where the log output should be stored. Defaults to 'run.log'.
         file_log_level (str): file log level. Defaults to 'info'.
         logs_to_silence (list[str]): list of loggers to be silenced. Useful when using log level < 'warning'. Defaults to [].
     """

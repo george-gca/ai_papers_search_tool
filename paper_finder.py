@@ -98,7 +98,7 @@ class PaperFinder:
             for word in keywords:
                 if len(word) > 2:
                     similar_words = self.get_most_similar_words(word, similars)
-                    if similar_words != None:
+                    if similar_words is not None:
                         for v, w in similar_words:
                             if len(w) > 2 and w in self.abstract_dict and \
                                     ((w not in keywords_dict) or \
@@ -119,7 +119,7 @@ class PaperFinder:
         similar_words_dict = {k: v for k, v in keywords_dict.items() if k not in main_keywords_dict}
         scores = np.zeros(self.n_papers)
 
-        if exclude_keywords != None:
+        if exclude_keywords is not None:
             exclude_keywords_index = {self.abstract_dict[k] for k in exclude_keywords if k in self.abstract_dict}
 
         # discard papers that does not fit our search
@@ -137,8 +137,9 @@ class PaperFinder:
                 valid_indices = (i for i in valid_indices if self.papers[i].year == year)
 
             # if contains keyword to exclude, discard it
-            if exclude_keywords != None and len(exclude_keywords_index) > 0:
-                valid_indices = (i for i in valid_indices if len(exclude_keywords_index.intersection(self.papers[i].abstract_freq)) == 0)
+            if exclude_keywords is not None and len(exclude_keywords_index) > 0:
+                valid_indices = (i for i in valid_indices \
+                                 if len(exclude_keywords_index.intersection(self.papers[i].abstract_freq)) == 0)
 
         with Timer('Keeping only papers with keywords or similar words'):
             # keep only papers that contains the keywords and similar words
@@ -160,7 +161,7 @@ class PaperFinder:
             # create various sequences of keywords to check on clean title
             ngrams = set()
             for n in range(2, len(keywords)+1):
-                ngrams.update({l for l in zip(*(keywords[i:] for i in range(n)))})
+                ngrams.update({k for k in zip(*(keywords[i:] for i in range(n)))})
 
         def _calc_score(i):
             paper_title_split = self.papers[i].clean_title.split()
@@ -169,14 +170,15 @@ class PaperFinder:
             abstract_score = 0
 
             # searches for whole keywords in title
-            title_score += sum(paper_title_counter[k] * v for k, v in main_keywords_dict.items() if k in paper_title_counter)
+            title_score += sum(paper_title_counter[k] * v for k, v in main_keywords_dict.items() \
+                               if k in paper_title_counter)
 
             # if at least one keyword is in title
             if title_score > 0:
                 # create various sequences of words in title
                 clean_title_ngrams = set()
                 for n in range(2, len(paper_title_split)+1):
-                    clean_title_ngrams.update({l for l in zip(*(paper_title_split[i:] for i in range(n)))})
+                    clean_title_ngrams.update({w for w in zip(*(paper_title_split[i:] for i in range(n)))})
 
                 # give extra score depending on sequences of keywords in title
                 # keywords_ngrams_in_title = [len(n) for n in clean_title_ngrams if n in ngrams]
@@ -198,10 +200,12 @@ class PaperFinder:
                     title_score += len(self.papers[i].title) - (len(self.papers[i].title) - len(search_str))
 
             # searches for words similar to keywords in title
-            title_score += sum(paper_title_counter[k] * v for k, v in similar_words_dict.items() if k in paper_title_counter)
+            title_score += sum(paper_title_counter[k] * v for k, v in similar_words_dict.items() \
+                               if k in paper_title_counter)
 
             # searches for keyword as part of word in title, weighted by how much of w is made of k
-            title_score += sum(paper_title_counter[k] * v * len(k)/len(w) for k, v in big_kw.items() for w in paper_title_counter if k in w and len(k) < len(w))
+            title_score += sum(paper_title_counter[k] * v * len(k)/len(w) \
+                               for k, v in big_kw.items() for w in paper_title_counter if k in w and len(k) < len(w))
 
             # searches in title and also abstract using weights given during training
             abstract_score += sum(self.papers[i].abstract_freq[self.abstract_dict[k]] * v \
@@ -246,7 +250,13 @@ class PaperFinder:
             optimized_pickled = pickletools.optimize(pickled)
             f.write(optimized_pickled)
 
-    def find_by_conference_and_year(self, conference: str = '', year: int = 0, count: int = 0, offset: int = 0) -> tuple[list[int], int]:
+    def find_by_conference_and_year(
+            self,
+            conference: str = '',
+            year: int = 0,
+            count: int = 0,
+            offset: int = 0,
+            ) -> tuple[list[int], int]:
         result, len_result = self._find_by_conference_and_year(conference, year, count)
         return result[offset:offset+count], len_result
 
@@ -262,7 +272,8 @@ class PaperFinder:
         search_str: None | str = None) \
             -> tuple[list[tuple[int, float]], int]:
 
-        result, result_len, scores = self._find_by_keywords(keywords, count, similars, conference, year, exclude_keywords, search_str)
+        result, result_len, scores = self._find_by_keywords(
+            keywords, count, similars, conference, year, exclude_keywords, search_str)
 
         if offset < result_len:
             if offset + count < result_len:
@@ -294,7 +305,7 @@ class PaperFinder:
         return results
 
     def get_most_similar_words(self, target_word: str, count: int = 5) -> list[tuple[float, str]]:
-        if self.similar_words != None and target_word in self.similar_words:
+        if self.similar_words is not None and target_word in self.similar_words:
             return self.similar_words[target_word][:count]
         return []
 

@@ -54,7 +54,10 @@ def main(args):
 
         corpus_ngram_file = data_dir / f'corpus_{args.max_dictionary_words}w.txt'
         p2v.create_corpus_with_phrases(corpus_ngram_file)
-        p2v.convert_text_with_phrases(data_dir / 'abstracts_clean_pwc.feather', data_dir / f'abstracts_{max_ngram}gram.feather')
+        p2v.convert_text_with_phrases(
+            data_dir / 'abstracts_clean_pwc.feather',
+            data_dir / f'abstracts_{max_ngram}gram.feather',
+            )
 
         abstract_files = [data_dir / c / 'abstracts_clean.csv' for c in supported_conferences]
         abstract_files = [c for c in abstract_files if c.exists()]
@@ -66,7 +69,12 @@ def main(args):
 
     if args.train:
         _logger.print('\nStep 3: Train word representation with fasttext.')
-        p2v.train_words_model(corpus_ngram_file, n_words=args.max_dictionary_words, model=args.model, min_count=args.min_count)
+        p2v.train_words_model(
+            corpus_ngram_file,
+            n_words=args.max_dictionary_words,
+            model=args.model,
+            min_count=args.min_count,
+            )
         p2v.build_similar_dictionary()
 
     else:
@@ -126,9 +134,11 @@ def main(args):
     _logger.print('\nStep 4: Build paper representation vectors with fasttext.')
 
     if args.ignore_arxiv_papers:
-        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix=f'_pwc', filter_conferences={'arxiv', 'none'})
+        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather',
+                                suffix='_pwc',
+                                filter_conferences={'arxiv', 'none'})
     else:
-        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix=f'_pwc')
+        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix='_pwc')
 
     p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.word_dim}dims_pwc')
 
