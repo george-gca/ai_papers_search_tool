@@ -132,13 +132,18 @@ def main(args):
     #####################################
 
     _logger.print('\nStep 4: Build paper representation vectors with fasttext.')
+    if args.min_year == 0:
+        year = None
+    else:
+        year = args.min_year
 
     if args.ignore_arxiv_papers:
         p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather',
                                 suffix='_pwc',
-                                filter_conferences={'arxiv', 'none'})
+                                filter_conferences={'arxiv', 'none'},
+                                filter_year=year)
     else:
-        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix='_pwc')
+        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix='_pwc', filter_year=year)
 
     p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.word_dim}dims_pwc')
 
@@ -186,6 +191,8 @@ if __name__ == '__main__':
                         help='minimum number of occurrences of n-gram to consider as a new term')
     parser.add_argument('--ngram_threshold_step', type=int, default=0,
                         help='increase threshold as ngram size decreases')
+    parser.add_argument('-y', '--min_year', type=int, default=0,
+                        help='minimum year of the paper to be considered')
 
     # args for training / clustering
     parser.add_argument('-m', '--model', type=str, default='skipgram',

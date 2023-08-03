@@ -161,12 +161,65 @@ class PaperFinderTrainer(PaperFinder):
         self.logger.print(f'Finished building dictionary with {len(self.dictionary):n} words.\n'
               f'{self.count[0][1]:n} words replaced by {self.count[0][0]} since they are not frequent enough.')
 
+    def _filter_papers_by_title(self, df: pd.DataFrame, titles: set[str]) -> pd.DataFrame:
+        self.logger.info('Filtering papers by title before building vectors')
+        self.logger.info(f'Papers before: {len(df):n}')
+
+        indices = df[df['title'].isin(titles)].index
+        df.drop(indices, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        self.papers = list(p for i, p in enumerate(self.papers) if i not in indices)
+
+        self.logger.info(f'Papers after: {len(df):n}')
+        self.n_papers = len(self.papers)
+
+        assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} now differ'
+        return df
+
+    def _filter_papers_by_conference(self, df: pd.DataFrame, conferences: set[str]) -> pd.DataFrame:
+        self.logger.info('Filtering papers by conference before building vectors')
+        self.logger.info(f'Papers before: {len(df):n}')
+
+        indices = df[df['conference'].isin(conferences)].index
+        df.drop(indices, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        self.papers = [p for i, p in enumerate(self.papers) if i not in indices]
+
+        # remove papers from conferences like 'W18-5604' and 'C18-1211', which are usually from aclanthology and are not
+        # with the correct conference name
+        indices = df[df.conference.str.contains(r'[\w][\d]{2}-[\d]{4}')].index
+        df.drop(indices, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        self.papers = [p for i, p in enumerate(self.papers) if i not in indices]
+
+        self.logger.info(f'Papers after: {len(df):n}')
+        self.n_papers = len(self.papers)
+
+        assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} now differ'
+        return df
+
+    def _filter_papers_by_year(self, df: pd.DataFrame, year: int) -> pd.DataFrame:
+        self.logger.info('Filtering papers by year before building vectors')
+        self.logger.info(f'Papers before: {len(df):n}')
+
+        indices = df[df['year'] < year].index
+        df.drop(indices, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        self.papers = list(p for i, p in enumerate(self.papers) if i not in indices)
+
+        self.logger.info(f'Papers after: {len(df):n}')
+        self.n_papers = len(self.papers)
+
+        assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} now differ'
+        return df
+
     def build_paper_vectors(
             self,
             input_file: Path,
             suffix: str='',
             filter_titles: None | set[str] = None,
             filter_conferences: None | set[str] = None,
+            filter_year: None | int = None,
             ) -> None:
         extension = input_file.suffix[1:] # excluding first char since it is .
         self.load_paper_info(input_file.parent / f'paper_info{suffix}.{extension}')
@@ -189,40 +242,13 @@ class PaperFinderTrainer(PaperFinder):
         assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} differ'
 
         if filter_titles is not None and len(filter_titles) > 0:
-            self.logger.info('Filtering papers by title before building vectors')
-            self.logger.info(f'Papers before: {len(df):n}')
-
-            indices = df[df['title'].isin(filter_titles)].index
-            df.drop(indices, inplace=True)
-            df.reset_index(drop=True, inplace=True)
-            self.papers = list(p for i, p in enumerate(self.papers) if i not in indices)
-
-            self.logger.info(f'Papers after: {len(df):n}')
-            self.n_papers = len(self.papers)
-
-            assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} now differ'
+            df = self._filter_papers_by_title(df, filter_titles)
 
         if filter_conferences is not None and len(filter_conferences) > 0:
-            self.logger.info('Filtering papers by conference before building vectors')
-            self.logger.info(f'Papers before: {len(df):n}')
+            df = self._filter_papers_by_conference(df, filter_conferences)
 
-            indices = df[df['conference'].isin(filter_conferences)].index
-            df.drop(indices, inplace=True)
-            df.reset_index(drop=True, inplace=True)
-            self.papers = list(p for i, p in enumerate(self.papers) if i not in indices)
-
-            # remove papers from conferences like 'W18-5604' and 'C18-1211', which are usually from aclanthology and are not
-            # with the correct conference name
-            indices = df[df.conference.str.contains(r'[\w][\d]{2}-[\d]{4}')].index
-            df.drop(indices, inplace=True)
-            df.reset_index(drop=True, inplace=True)
-            self.papers = list(p for i, p in enumerate(self.papers) if i not in indices)
-
-            self.logger.info(f'Papers after: {len(df):n}')
-            self.n_papers = len(self.papers)
-
-            assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} now differ'
-
+        if filter_year is not None:
+            df = self._filter_papers_by_year(df, filter_year)
 
         def _build_paper_vector(row):
             index = row.name
