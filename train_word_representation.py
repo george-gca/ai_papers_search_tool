@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 
 from paper_finder_trainer import PaperFinderTrainer
-from utils import conferences_pdfs, setup_log, supported_conferences
+from utils import CONFERENCES_PDFS, setup_log, SUPPORTED_CONFERENCES
 
 
 _logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def main(args):
     if args.build_dictionary:
         _logger.print('\nStep 1: Removes rare words to build a suitable size of dictionary.')
 
-        corpus_files = [data_dir / c / 'pdfs_clean.csv' for c in conferences_pdfs]
+        corpus_files = [data_dir / c / 'pdfs_clean.csv' for c in CONFERENCES_PDFS]
         corpus_files = [c for c in corpus_files if c.exists()]
 
         for corpus_file in corpus_files:
@@ -59,7 +59,7 @@ def main(args):
             data_dir / f'abstracts_{max_ngram}gram.feather',
             )
 
-        abstract_files = [data_dir / c / 'abstracts_clean.csv' for c in supported_conferences]
+        abstract_files = [data_dir / c / 'abstracts_clean.csv' for c in SUPPORTED_CONFERENCES]
         abstract_files = [c for c in abstract_files if c.exists()]
 
         for abstract_file in abstract_files:

@@ -3,7 +3,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 
-supported_conferences = [
+SUPPORTED_CONFERENCES = [
     'aaai/2017',
     'aaai/2018',
     'aaai/2019',
@@ -113,7 +113,7 @@ supported_conferences = [
 ]
 
 
-conferences_pdfs = [c for c in supported_conferences if not c.startswith('kdd') and not c.startswith('sigchi')]
+CONFERENCES_PDFS = [c for c in SUPPORTED_CONFERENCES if not c.startswith('kdd') and not c.startswith('sigchi')]
 
 
 def setup_log(
