@@ -374,26 +374,19 @@ class PaperFinder:
         self.logger.info(f'Loaded {self.n_papers:n} papers info.')
 
     def save_paper_vectors(self, suffix: str = '') -> None:
-        self._save_object(
-            self.model_dir / f'abstract_dict{suffix}', self.abstract_dict)
-        self._save_object(
-            self.model_dir / f'abstract_words{suffix}', self.abstract_words)
-        self._save_object(
-            self.model_dir / f'paper_vectors{suffix}', self.paper_vectors)
-        self._save_object(
-            self.model_dir / f'cluster_ids{suffix}', self.paper_cluster_ids)
-        self._save_object(
-            self.model_dir / f'nearest_neighbours{suffix}', self.nearest_neighbours)
+        self._save_object(self.model_dir / f'abstract_dict{suffix}', self.abstract_dict)
+        self._save_object(self.model_dir / f'abstract_words{suffix}', self.abstract_words)
+        self._save_object(self.model_dir / f'paper_vectors{suffix}', self.paper_vectors)
+        self._save_object(self.model_dir / f'cluster_ids{suffix}', self.paper_cluster_ids)
+        self._save_object(self.model_dir / f'nearest_neighbours{suffix}', self.nearest_neighbours)
 
         abstract_freq = list(p.abstract_freq for p in self.papers)
         papers = deepcopy(self.papers)
         for p in papers:
             p.abstract_freq = None
 
-        self._save_object(
-            self.model_dir / f'paper_info{suffix}', papers)
-        self._save_object(
-            self.model_dir / f'paper_info_freq{suffix}', abstract_freq)
+        self._save_object(self.model_dir / f'paper_info{suffix}', papers)
+        self._save_object(self.model_dir / f'paper_info_freq{suffix}', abstract_freq)
 
         if self.similar_words is not None:
             similar_words = self.similar_words
@@ -408,8 +401,7 @@ class PaperFinder:
                     if self.abstract_words[word_pos] in similar_words:
                         papers_with_words[self.abstract_words[word_pos]].append(i)
 
-        self._save_object(
-            self.model_dir / f'papers_with_words{suffix}', papers_with_words)
+        self._save_object(self.model_dir / f'papers_with_words{suffix}', papers_with_words)
 
         self.logger.info(f'Saved {self.n_papers:n} papers info.')
 
