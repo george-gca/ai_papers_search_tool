@@ -47,6 +47,11 @@ class PaperFinderTrainer(PaperFinder):
         self.model: Any = None
         self.title_search_weight: float = title_search_weight
         self.title_vector_weight: float = title_vector_weight
+        # TODO: change self.words to read/write from/to file with https://github.com/RaRe-Technologies/smart_open
+        # TODO: check if this is the part that consumes most memory with
+        # https://docs.python.org/3/library/tracemalloc.html
+        # https://coderzcolumn.com/tutorials/python/tracemalloc-how-to-trace-memory-usage-in-python-code
+        # https://stackoverflow.com/questions/70525623/measuring-the-allocated-memory-with-tracemalloc
         self.words: list[str] = []
         self.word_dim: int = word_dim
 
