@@ -86,7 +86,7 @@ class PaperFinderTrainer(PaperFinder):
 
         # probably the number of most common n-grams that happens more than
         # ngram_threshold times is lesser than a portion of dictionary size
-        top_n = self.max_dictionary_words // (3 * n)
+        top_n = self.max_dictionary_words // (2 * n)
         self.logger.info(
             f'Checking which {n}-grams occurs more than {ngram_threshold:n} times '
             f'from the top {top_n:n} most frequent ones\n')
