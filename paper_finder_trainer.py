@@ -178,7 +178,9 @@ class PaperFinderTrainer(PaperFinder):
         self.logger.info(f'Papers after: {len(df):n}')
         self.n_papers = len(self.papers)
 
-        assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} now differ'
+        if len(df) != len(self.papers):
+            self.logger.error(f'Sizes {len(df)} and {len(self.papers)} now differ')
+            raise ValueError(f'Sizes {len(df)} and {len(self.papers)} now differ')
         return df
 
     def _filter_papers_by_conference(self, df: pd.DataFrame, conferences: set[str]) -> pd.DataFrame:
@@ -200,7 +202,10 @@ class PaperFinderTrainer(PaperFinder):
         self.logger.info(f'Papers after: {len(df):n}')
         self.n_papers = len(self.papers)
 
-        assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} now differ'
+        if len(df) != len(self.papers):
+            self.logger.error(f'Sizes {len(df)} and {len(self.papers)} now differ')
+            raise ValueError(f'Sizes {len(df)} and {len(self.papers)} now differ')
+
         return df
 
     def _filter_papers_by_year(self, df: pd.DataFrame, year: int) -> pd.DataFrame:
@@ -215,7 +220,10 @@ class PaperFinderTrainer(PaperFinder):
         self.logger.info(f'Papers after: {len(df):n}')
         self.n_papers = len(self.papers)
 
-        assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} now differ'
+        if len(df) != len(self.papers):
+            self.logger.error(f'Sizes {len(df)} and {len(self.papers)} now differ')
+            raise ValueError(f'Sizes {len(df)} and {len(self.papers)} now differ')
+
         return df
 
     def build_paper_vectors(
@@ -244,7 +252,9 @@ class PaperFinderTrainer(PaperFinder):
 
         # self.papers is built from paper_info_pwc.feather
         # df is built from abstracts_5gram.feather
-        assert len(df) == len(self.papers), f'Sizes {len(df)} and {len(self.papers)} differ'
+        if len(df) != len(self.papers):
+            self.logger.error(f'Sizes {len(df)} and {len(self.papers)} differ')
+            raise ValueError(f'Sizes {len(df)} and {len(self.papers)} differ')
 
         if filter_titles is not None and len(filter_titles) > 0:
             df = self._filter_papers_by_title(df, filter_titles)
