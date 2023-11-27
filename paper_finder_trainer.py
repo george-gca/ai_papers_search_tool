@@ -233,6 +233,7 @@ class PaperFinderTrainer(PaperFinder):
             filter_titles: None | set[str] = None,
             filter_conferences: None | set[str] = None,
             filter_year: None | int = None,
+            keep_na: bool = True,
             ) -> None:
         extension = input_file.suffix[1:] # excluding first char since it is .
         self.load_paper_info(input_file.parent / f'paper_info{suffix}.{extension}')
@@ -245,10 +246,12 @@ class PaperFinderTrainer(PaperFinder):
         self.abstract_words = []
 
         if 'csv' in extension:
-            df = pd.read_csv(input_file, sep='|', dtype=str, keep_default_na=False)
+            df = pd.read_csv(input_file, sep='|', dtype=str, keep_default_na=keep_na)
         elif 'feather' in extension:
             df = pd.read_feather(input_file)
-            df.dropna(inplace=True)
+            if not keep_na:
+                # df.dropna(subset=['conference'])
+                df.dropna(inplace=True)
 
         # self.papers is built from paper_info_pwc.feather
         # df is built from abstracts_5gram.feather
@@ -336,15 +339,15 @@ class PaperFinderTrainer(PaperFinder):
             else:
                 self.cluster_abstract_freq.append([])
 
-    def convert_text_with_phrases(self, src_file: Path, dest_file: Path, column: str = 'abstract') -> None:
+    def convert_text_with_phrases(self, src_file: Path, dest_file: Path, column: str = 'abstract', keep_na: bool = True) -> None:
         if 'csv' in src_file.suffix:
-            df = pd.read_csv(src_file, sep='|', dtype=str, keep_default_na=False)
+            df = pd.read_csv(src_file, sep='|', dtype=str, keep_default_na=keep_na)
         else: # if 'feather' in src_file.suffix:
             df = pd.read_feather(src_file)
 
         self.logger.print(f'Building new text file on {dest_file}')
         tqdm.pandas(unit='word', desc='Replacing words by n-grams', ncols=TQDM_NCOLS)
-        df[column] = df[column].progress_apply(self._replace_words_by_ngrams)
+        df[column] = df[column].astype('str').progress_apply(self._replace_words_by_ngrams)
 
         if 'csv' in dest_file.suffix:
             df.to_csv(dest_file, sep='|', index=False)
@@ -397,7 +400,7 @@ class PaperFinderTrainer(PaperFinder):
     def get_most_similar_words(self, target_word: str, count: int = 5) -> list[tuple[float, str]]:
         return self.model.get_nearest_neighbors(target_word, k=count)
 
-    def load_paper_info(self, paper_info_file: Path) -> None:
+    def load_paper_info(self, paper_info_file: Path, keep_na: bool = True) -> None:
         def _add_paper_info(row, papers_info, accents):
             if 'conference' in row:
                 conference = row['conference']
@@ -409,6 +412,11 @@ class PaperFinderTrainer(PaperFinder):
             else:
                 year = 0
 
+            if 'arxiv_id' in row:
+                arxiv_id = row['arxiv_id']
+            else:
+                arxiv_id = None
+
             # clean paper title
             paper_title = row['title'].lower()
             for k, v in accents.items():
@@ -416,19 +424,25 @@ class PaperFinderTrainer(PaperFinder):
             paper_title = re.sub('([\w]+)[\-\−\–]([\w]+)', '\\1_\\2', paper_title)
             paper_title = re.sub('[^ \w_/]', '', paper_title)
 
-            papers_info.append(PaperInfo(title=row['title'],
-                                         clean_title=paper_title.strip(),
-                                         abstract_url=str(row['abstract_url']),
-                                         pdf_url=str(row['pdf_url']),
-                                         conference=conference,
-                                         year=year))
+            papers_info.append(
+                PaperInfo(
+                    title=row['title'],
+                    clean_title=paper_title.strip(),
+                    abstract_url=str(row['abstract_url']),
+                    pdf_url=str(row['pdf_url']),
+                    conference=conference,
+                    year=year,
+                    arxiv_id=arxiv_id,
+                    )
+                )
 
         extension = paper_info_file.suffix
         if 'csv' in extension:
-            df = pd.read_csv(paper_info_file, sep=';', keep_default_na=False)
+            df = pd.read_csv(paper_info_file, sep=';', keep_default_na=keep_na)
         elif 'feather' in extension:
             df = pd.read_feather(paper_info_file)
-            df.dropna(inplace=True)
+            if not keep_na:
+                df.dropna(inplace=True)
 
 
         # each paper contains 3 infos (title, abstract_url, paper_url)
