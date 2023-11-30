@@ -1,10 +1,11 @@
-from itertools import takewhile
 import locale
 import logging
 import math
 import multiprocessing
 import re
-from collections import Counter
+from collections import Counter, defaultdict
+from copy import deepcopy
+from itertools import takewhile
 from pathlib import Path
 from typing import Any
 
@@ -276,6 +277,9 @@ class PaperFinderTrainer(PaperFinder):
             self.paper_vectors[index] += self.model.get_sentence_vector(row['abstract'])
 
             for word in title.split():
+                if word not in self.dictionary:
+                    self.dictionary.add(word)
+
                 if word not in self.abstract_dict:
                     self.abstract_dict[word] = len(self.abstract_dict)
                     self.abstract_words.append(word)
@@ -401,7 +405,19 @@ class PaperFinderTrainer(PaperFinder):
         return self.model.get_nearest_neighbors(target_word, k=count)
 
     def load_paper_info(self, paper_info_file: Path, keep_na: bool = True) -> None:
-        def _add_paper_info(row, papers_info, accents):
+        replace_hyphen = re.compile('([\w]+)[\-\−\–]([\w]+)')
+        replace_symbols = re.compile('[^ \w_/]')
+        replace_accents = {
+            re.compile('[áàãâä]|´a|`a|\~a|\^a'): 'a',
+            re.compile('ç'): 'c',
+            re.compile('[éèêë]|´e|`e|\^e'): 'e',
+            re.compile('[íïì]|´i|`i'): 'i',
+            re.compile('ñ'): 'n',
+            re.compile('[óòôö]|´o|`o|\~o|\^o'): 'o',
+            re.compile('[úùü]|´u|`u'): 'u',
+        }
+
+        def _add_paper_info(row, papers_info):
             if 'conference' in row:
                 conference = row['conference']
             else:
@@ -419,10 +435,10 @@ class PaperFinderTrainer(PaperFinder):
 
             # clean paper title
             paper_title = row['title'].lower()
-            for k, v in accents.items():
-                paper_title = re.sub(k, v, paper_title)
-            paper_title = re.sub('([\w]+)[\-\−\–]([\w]+)', '\\1_\\2', paper_title)
-            paper_title = re.sub('[^ \w_/]', '', paper_title)
+            for k, v in replace_accents.items():
+                paper_title = k.sub(v, paper_title)
+            paper_title = replace_hyphen.sub('\\1_\\2', paper_title)
+            paper_title = replace_symbols.sub('', paper_title)
 
             papers_info.append(
                 PaperInfo(
@@ -444,21 +460,10 @@ class PaperFinderTrainer(PaperFinder):
             if not keep_na:
                 df.dropna(inplace=True)
 
-
         # each paper contains 3 infos (title, abstract_url, paper_url)
-        accents = {
-            '[áàãâä]|´a|`a|\~a|\^a': 'a',
-            'ç': 'c',
-            '[éèêë]|´e|`e|\^e': 'e',
-            '[íïì]|´i|`i': 'i',
-            'ñ': 'n',
-            '[óòôö]|´o|`o|\~o|\^o': 'o',
-            '[úùü]|´u|`u': 'u',
-        }
-
         self.papers: list[PaperInfo] = []
         tqdm.pandas(unit='paper', desc='Reading papers info', ncols=TQDM_NCOLS)
-        df.progress_apply(_add_paper_info, axis=1, papers_info=self.papers, accents=accents)
+        df.progress_apply(_add_paper_info, axis=1, papers_info=self.papers)
 
         self.n_papers = len(self.papers)
         self.logger.print(f'Found info for {self.n_papers:n} papers')
@@ -493,3 +498,35 @@ class PaperFinderTrainer(PaperFinder):
         self.model.save_model(str(model_file))
         self.words = list(self.model.get_words())
         self.logger.print(f'Finished. Dictionary size: {len(self.words):n}')
+
+    def save_paper_vectors(self, suffix: str = '') -> None:
+        self._save_object(self.model_dir / f'abstract_dict{suffix}', self.abstract_dict)
+        self._save_object(self.model_dir / f'abstract_words{suffix}', self.abstract_words)
+        self._save_object(self.model_dir / f'paper_vectors{suffix}', self.paper_vectors)
+        self._save_object(self.model_dir / f'cluster_ids{suffix}', self.paper_cluster_ids)
+        self._save_object(self.model_dir / f'nearest_neighbours{suffix}', self.nearest_neighbours)
+
+        abstract_freq = list(p.abstract_freq for p in self.papers)
+        papers = deepcopy(self.papers)
+        for p in papers:
+            p.abstract_freq = None
+
+        self._save_object(self.model_dir / f'paper_info{suffix}', papers)
+        self._save_object(self.model_dir / f'paper_info_freq{suffix}', abstract_freq)
+
+        # if self.similar_words is not None:
+        #     similar_words = self.similar_words
+        # else:
+        #     similar_words = set(self.words)
+
+        with Timer('Creating dict of papers with words'):
+            papers_with_words: dict[str, list[int]] = defaultdict(list)
+
+            for i, p in enumerate(self.papers):
+                for word_pos in p.abstract_freq:
+                    if self.abstract_words[word_pos] in self.dictionary:
+                        papers_with_words[self.abstract_words[word_pos]].append(i)
+
+        self._save_object(self.model_dir / f'papers_with_words{suffix}', papers_with_words)
+
+        self.logger.info(f'Saved {self.n_papers:n} papers info.')
