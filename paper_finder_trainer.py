@@ -372,6 +372,7 @@ class PaperFinderTrainer(PaperFinder):
 
         if len(ngrams_set) > 0:
             self.logger.info(f'\nOnly {len(ngrams_set):n} {n}-grams occurs more than {ngram_threshold:n} times')
+            ngrams_replace = {ngram.replace('_', ' '): ngram for ngram in ngrams_set}
 
             chunk_size = 500_000 // n # words
             new_words = []
@@ -381,11 +382,11 @@ class PaperFinderTrainer(PaperFinder):
                       desc=f'Replacing words by frequent {n}-grams',
                       ncols=TQDM_NCOLS) as pbar:
 
+                # TODO: check if the end of a chunk is not a n-gram
                 for chunk in _chunks(self.words, chunk_size):
                     words = f' {" ".join(chunk)} '
-                    for ngram in ngrams_set:
-                        regex = f'\b{" ".join(ngram.split("_"))}\b'
-                        words = re.sub(regex, f'\b{ngram}\b', words)
+                    for original, new in ngrams_replace.items():
+                        words = words.replace(f' {original} ', f' {new} ')
                         pbar.update(1)
 
                     new_words += words.strip().split()
