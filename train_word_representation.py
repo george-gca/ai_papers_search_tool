@@ -125,7 +125,7 @@ def main(args):
     _logger.print('\nChecking result. Finding similar words for:')
     for word in words_to_check:
         most_similar_words = p2v.get_most_similar_words(word, 10)
-        most_similar_words = [f'{w}: {v:2.3f}' for v, w in most_similar_words]
+        most_similar_words = (f'{w}: {v:2.3f}' for v, w in most_similar_words)
         most_similar_words = "\n\t".join(most_similar_words)
         _logger.print(f'\n{word}\n\t{most_similar_words}')
 
@@ -172,8 +172,7 @@ def main(args):
     n_keywords = 15
     for i in range(args.clusters):
         cluster_keywords = p2v.cluster_abstract_freq[i]
-        cluster_keywords = [
-            p2v.abstract_words[w] for w, _ in cluster_keywords if w not in not_informative_words][:n_keywords]
+        cluster_keywords = [p2v.abstract_words[w] for w, _ in cluster_keywords if w not in not_informative_words][:n_keywords]
         _logger.print(f'cluster {i+1:02d} keywords: {", ".join(cluster_keywords)}')
 
 
