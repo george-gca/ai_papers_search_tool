@@ -125,7 +125,7 @@ class PaperFinder:
         # discard papers that does not fit our search
         valid_indices = range(self.n_papers)
 
-        with Timer('Excluding papers by keywords, conference and/or year'):
+        with Timer(name='Excluding papers by keywords, conference and/or year'):
             if len(conference) > 0:
                 if not conference.startswith('-'):
                     valid_indices = (i for i in valid_indices if self.papers[i].conference == conference)
@@ -141,14 +141,14 @@ class PaperFinder:
                 valid_indices = (i for i in valid_indices \
                                  if len(exclude_keywords_index.intersection(self.papers[i].abstract_freq)) == 0)
 
-        with Timer('Keeping only papers with keywords or similar words'):
+        with Timer(name='Keeping only papers with keywords or similar words'):
             # keep only papers that contains the keywords and similar words
             valid_indices_by_kw = set()
             for kw in keywords_dict:
                 if kw in self.papers_with_words:
                     valid_indices_by_kw = valid_indices_by_kw.union(set(self.papers_with_words[kw]))
 
-        with Timer('Keeping also papers with superstrings of the keywords'):
+        with Timer(name='Keeping also papers with superstrings of the keywords'):
             # consider also words that are superstrings of the main keywords, excluding small keywords
             big_kw = {k: v for k, v in main_keywords_dict.items() if len(k) > 2}
             kw_as_substr = {w for kw in big_kw for w in self.papers_with_words if kw in w and len(kw) < len(w)}
@@ -157,7 +157,7 @@ class PaperFinder:
 
             valid_indices = (i for i in valid_indices if i in valid_indices_by_kw)
 
-        with Timer('Creating ngrams'):
+        with Timer(name='Creating ngrams'):
             # create various sequences of keywords to check on clean title
             ngrams = set()
             for n in range(2, len(keywords)+1):
@@ -227,7 +227,7 @@ class PaperFinder:
 
             return title_score + abstract_score
 
-        with Timer("Calculating papers' scores"):
+        with Timer(name="Calculating papers' scores"):
             valid_indices = list(valid_indices)
             np.put(scores, valid_indices, list(_calc_score(i) for i in valid_indices))
 
@@ -239,7 +239,7 @@ class PaperFinder:
         return result, result_len, scores
 
     def _load_object(self, name: str | Path) -> object:
-        with Timer(f'Loading {name}'):
+        with Timer(name=f'Loading {name}'):
             with gzip.open(f'{name}.pkl.gz', 'rb') as f:
                 return pickle.load(f)
 

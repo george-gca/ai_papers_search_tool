@@ -512,7 +512,7 @@ class PaperFinderTrainer(PaperFinder):
         # else:
         #     similar_words = set(self.words)
 
-        with Timer('Creating dict of papers with words'):
+        with Timer(name='Creating dict of papers with words'):
             papers_with_words: dict[str, list[int]] = defaultdict(list)
 
             for i, p in enumerate(self.papers):
