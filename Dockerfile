@@ -53,7 +53,8 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         pandas \
         pyarrow \
         scikit-learn \
-        tqdm && \
+        tqdm \
+        unidecode && \
 
 # ==================================================================
 # config & cleanup

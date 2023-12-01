@@ -7,6 +7,7 @@ from collections import Counter, defaultdict
 from copy import deepcopy
 from itertools import takewhile
 from pathlib import Path
+from string import punctuation
 from typing import Any
 
 import numpy as np
@@ -16,6 +17,7 @@ from scipy.spatial import KDTree
 from sklearn.cluster import KMeans
 from sklearn.manifold import TSNE
 from tqdm import tqdm
+from unidecode import unidecode
 
 from paper_finder import PaperFinder
 from paperinfo import PaperInfo
@@ -406,17 +408,7 @@ class PaperFinderTrainer(PaperFinder):
         return self.model.get_nearest_neighbors(target_word, k=count)
 
     def load_paper_info(self, paper_info_file: Path, keep_na: bool = True) -> None:
-        replace_hyphen = re.compile('([\w]+)[\-\−\–]([\w]+)')
-        replace_symbols = re.compile('[^ \w_/]')
-        replace_accents = {
-            re.compile('[áàãâä]|´a|`a|\~a|\^a'): 'a',
-            re.compile('ç'): 'c',
-            re.compile('[éèêë]|´e|`e|\^e'): 'e',
-            re.compile('[íïì]|´i|`i'): 'i',
-            re.compile('ñ'): 'n',
-            re.compile('[óòôö]|´o|`o|\~o|\^o'): 'o',
-            re.compile('[úùü]|´u|`u'): 'u',
-        }
+        not_allowed = set(punctuation) - {'_'}
 
         def _add_paper_info(row, papers_info):
             if 'conference' in row:
@@ -436,10 +428,10 @@ class PaperFinderTrainer(PaperFinder):
 
             # clean paper title
             paper_title = row['title'].lower()
-            for k, v in replace_accents.items():
-                paper_title = k.sub(v, paper_title)
-            paper_title = replace_hyphen.sub('\\1_\\2', paper_title)
-            paper_title = replace_symbols.sub('', paper_title)
+            paper_title = unidecode(paper_title).replace('-', '_')
+            for c in not_allowed:
+                if c in paper_title:
+                    paper_title = paper_title.replace(c, '')
 
             papers_info.append(
                 PaperInfo(
