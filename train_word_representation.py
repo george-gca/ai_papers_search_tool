@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import locale
 import logging
 from pathlib import Path
@@ -29,7 +30,7 @@ def main(args):
     if args.build_dictionary:
         _logger.print('\nStep 1: Removes rare words to build a suitable size of dictionary.')
 
-        corpus_files = [data_dir / c / 'pdfs_clean.csv' for c in CONFERENCES_PDFS]
+        corpus_files = (data_dir / c / str(y) / 'pdfs_clean.csv' for c in CONFERENCES_PDFS for y in range(2017, datetime.date.today().year + 1))
         corpus_files = [c for c in corpus_files if c.exists()]
 
         for corpus_file in corpus_files:
@@ -59,7 +60,7 @@ def main(args):
             data_dir / f'abstracts_{max_ngram}gram.feather',
             )
 
-        abstract_files = [data_dir / c / 'abstracts_clean.csv' for c in SUPPORTED_CONFERENCES]
+        abstract_files = (data_dir / c / str(y) / 'abstracts_clean.csv' for c in SUPPORTED_CONFERENCES for y in range(2017, datetime.date.today().year + 1))
         abstract_files = [c for c in abstract_files if c.exists()]
 
         for abstract_file in abstract_files:
