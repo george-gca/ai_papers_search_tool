@@ -23,7 +23,7 @@ if [ -n "$train_paper_finder" ]; then
     if [ -n "$create_for_app" ]; then
         # when building for web app, only consider the last 5 years of papers
         echo -e "\nBuilding word representation with fasttext for web app"
-        $run_command python train_word_representation.py -l info -c $n_clusters -d 30000 -t $ngram_threshold --ngram_threshold_step $ngram_threshold_step -i --build_dictionary --detect_ngrams --train --min_year $(($(date +'%Y') - 5))
+        $run_command python train_word_representation.py -l info -c $n_clusters -d 30000 -t $ngram_threshold --ngram_threshold_step $ngram_threshold_step -i --build_dictionary --detect_ngrams --train --min_year $(($(date +'%Y') - 6))
     fi
 
     echo -e "\nBuilding word representation with fasttext"
