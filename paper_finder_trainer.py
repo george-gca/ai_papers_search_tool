@@ -145,6 +145,17 @@ class PaperFinderTrainer(PaperFinder):
         self.logger.print(f'File: {file_path} - Words: {len(words):n}')
         self.words += words
 
+    def _remove_sequence_of_unk(self, words: list[str]) -> list[str]:
+        new_words = []
+        for w in words:
+            if w == self.unk:
+                if len(new_words) == 0 or new_words[-1] != self.unk:
+                    new_words.append(w)
+            else:
+                new_words.append(w)
+
+        return new_words
+
     def build_dictionary(self, rebuild=False) -> None:
         with Timer(name='Counting words occurrences'):
             if self.max_dictionary_words > 0:
@@ -158,6 +169,8 @@ class PaperFinderTrainer(PaperFinder):
         self.dictionary = { w for w, _ in self.count if w != self.unk and w != self.eop }
         self.words = list(w if w in self.dictionary else self.unk
                       for w in tqdm(self.words, unit='word', desc='Rebuilding list of words', ncols=TQDM_NCOLS))
+
+        self.words = self._remove_sequence_of_unk(self.words)
 
         with Timer(name='Counting words occurrences after removing least frequent ones'):
             if self.max_dictionary_words > 0:
