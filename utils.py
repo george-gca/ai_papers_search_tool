@@ -20,7 +20,7 @@ SUPPORTED_CONFERENCES = [
     'kdd',
     'naacl',
     'neurips',
-    'neurips_workshop',
+    # 'neurips_workshop',
     'sigchi',
     'sigdial',
     'tacl',
