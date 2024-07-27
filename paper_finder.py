@@ -4,7 +4,7 @@ import logging
 import pickle
 import pickletools
 import re
-from collections import defaultdict, Counter
+from collections import Counter
 from copy import deepcopy
 from functools import lru_cache
 from itertools import takewhile

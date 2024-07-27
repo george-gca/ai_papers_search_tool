@@ -448,13 +448,14 @@ class PaperFinderTrainer(PaperFinder):
 
             papers_info.append(
                 PaperInfo(
-                    title=row['title'],
-                    clean_title=paper_title.strip(),
                     abstract_url=str(row['abstract_url']),
-                    pdf_url=str(row['pdf_url']),
-                    conference=conference,
-                    year=year,
                     arxiv_id=arxiv_id,
+                    clean_title=paper_title.strip(),
+                    conference=conference,
+                    pdf_url=str(row['pdf_url']),
+                    source_url=int(row['source_url']),
+                    title=row['title'],
+                    year=year,
                     )
                 )
 
