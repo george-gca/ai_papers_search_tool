@@ -25,7 +25,7 @@ def main(args):
 
     #####################################
 
-    max_ngram = 5
+    max_ngram = 6
 
     if args.build_dictionary:
         _logger.print('\nStep 1: Removes rare words to build a suitable size of dictionary.')
