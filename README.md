@@ -1,6 +1,6 @@
 # AI Papers Search Tool
 
-Automatic paper clustering and search tool by [fasText from Facebook Research](https://fasttext.cc/).
+Automatic paper clustering and search tool by [fastText from Facebook Research](https://fasttext.cc/).
 
 Based on [CVPR_paper_search_tool by Jin Yamanaka](https://github.com/jiny2001/CVPR_paper_search_tool). I decided to split the code into multiple projects:
 
