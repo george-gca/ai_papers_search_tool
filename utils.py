@@ -23,6 +23,8 @@ SUPPORTED_CONFERENCES = [
     # 'neurips_workshop',
     'sigchi',
     'sigdial',
+    'siggraph',
+    'siggraph-asia',
     'tacl',
     'wacv',
 ]
