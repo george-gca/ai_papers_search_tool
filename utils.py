@@ -30,7 +30,7 @@ SUPPORTED_CONFERENCES = [
 ]
 
 
-CONFERENCES_PDFS = [c for c in SUPPORTED_CONFERENCES if not c.startswith(('kdd', 'sigchi'))]
+CONFERENCES_PDFS = [c for c in SUPPORTED_CONFERENCES if not c.startswith(('kdd', 'sigchi', 'siggraph', 'siggraph-asia'))]
 
 
 def setup_log(
