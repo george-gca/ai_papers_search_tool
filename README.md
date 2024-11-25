@@ -8,6 +8,7 @@ Based on [CVPR_paper_search_tool by Jin Yamanaka](https://github.com/jiny2001/CV
 - [AI Papers Cleaner](https://github.com/george-gca/ai_papers_cleaner) - Extract text from papers PDFs and abstracts, and remove uninformative words
 - this project - Automatic paper clustering
 - [AI Papers Searcher](https://github.com/george-gca/ai_papers_searcher) - Web app to search papers by keywords or similar papers
+- [AI Conferences Info](https://github.com/george-gca/ai_conferences_info) - Contains the titles, abstracts, urls, and authors names extracted from the papers
 
 I also added support for more conferences in a single web app, customized it a little further, and hosted it on [PythonAnywhere](https://www.pythonanywhere.com/). You can see a running example of the web app [here](https://georgegca.pythonanywhere.com/).
 
