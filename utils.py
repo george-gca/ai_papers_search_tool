@@ -17,6 +17,7 @@ SUPPORTED_CONFERENCES = [
     'icml',
     'ijcai',
     'ijcnlp',
+    'ijcv',
     'kdd',
     'naacl',
     'neurips',
@@ -26,11 +27,12 @@ SUPPORTED_CONFERENCES = [
     'siggraph',
     'siggraph-asia',
     'tacl',
+    'tpami',
     'wacv',
 ]
 
 
-CONFERENCES_PDFS = [c for c in SUPPORTED_CONFERENCES if not c.startswith(('kdd', 'sigchi', 'siggraph', 'siggraph-asia'))]
+CONFERENCES_PDFS = [c for c in SUPPORTED_CONFERENCES if not c.startswith(('ijcv', 'kdd', 'sigchi', 'siggraph', 'siggraph-asia', 'tpami'))]
 
 
 def setup_log(
