@@ -115,18 +115,33 @@ class PaperFinderTrainer(PaperFinder):
 
     def _replace_words_by_ngrams(self, text: str) -> str:
         words = text.split()
+
         for n in reversed(range(2, self.max_ngram)):
             self.logger.debug(f'Replacing {n}-grams')
             i = n
-            while i < len(words):
+
+            while i <= len(words):
+                if any('_' in w for w in words[i-n:i]):
+                    i += 1
+                    continue
+
                 ngram = '_'.join(words[i-n:i])
+
                 if ngram in self.dictionary:
-                    words[i-n] = ngram
+                    try:
+                        words[i-n] = ngram
+                    except IndexError as e:
+                        print(i, n, len(words))
+                        raise e
+
                     i -= n-1
                     j = n-1
+
                     while j > 0:
                         words.pop(i)
                         j -= 1
+
+                    i += n
 
                 else:
                     i += 1
