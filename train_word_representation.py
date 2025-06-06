@@ -30,7 +30,7 @@ def main(args):
     if args.build_dictionary:
         _logger.print('\nStep 1: Removes rare words to build a suitable size of dictionary.')
 
-        corpus_files = (data_dir / c / str(y) / 'pdfs_clean.csv' for c in CONFERENCES_PDFS for y in range(2017, datetime.date.today().year + 1))
+        corpus_files = (data_dir / c / str(y) / 'pdfs_clean.tsv' for c in CONFERENCES_PDFS for y in range(2017, datetime.date.today().year + 1))
         corpus_files = [c for c in corpus_files if c.exists()]
 
         for corpus_file in corpus_files:
@@ -60,11 +60,11 @@ def main(args):
             data_dir / f'abstracts_{max_ngram}gram.feather',
             )
 
-        abstract_files = (data_dir / c / str(y) / 'abstracts_clean.csv' for c in SUPPORTED_CONFERENCES for y in range(2017, datetime.date.today().year + 1))
+        abstract_files = (data_dir / c / str(y) / 'abstracts_clean.tsv' for c in SUPPORTED_CONFERENCES for y in range(2017, datetime.date.today().year + 1))
         abstract_files = [c for c in abstract_files if c.exists()]
 
         for abstract_file in abstract_files:
-            p2v.convert_text_with_phrases(abstract_file, abstract_file.parent / f'abstracts_{max_ngram}gram.csv')
+            p2v.convert_text_with_phrases(abstract_file, abstract_file.parent / f'abstracts_{max_ngram}gram.tsv')
 
         #####################################
 

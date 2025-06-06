@@ -153,7 +153,7 @@ class PaperFinderTrainer(PaperFinder):
             words += abstract.split()
             words += [self.eop]
 
-        df = pd.read_csv(file_path, sep='|', dtype=str, keep_default_na=False)
+        df = pd.read_csv(file_path, sep='\t', dtype=str, keep_default_na=False)
         words = []
         df[column].apply(_add_words, words=words)
 
@@ -276,8 +276,8 @@ class PaperFinderTrainer(PaperFinder):
         self.abstract_dict = {}
         self.abstract_words = []
 
-        if 'csv' in extension:
-            df = pd.read_csv(input_file, sep='|', dtype=str, keep_default_na=keep_na)
+        if 'tsv' in extension:
+            df = pd.read_csv(input_file, sep='\t', dtype=str, keep_default_na=keep_na)
         elif 'feather' in extension:
             df = pd.read_feather(input_file)
             if not keep_na:
@@ -333,6 +333,9 @@ class PaperFinderTrainer(PaperFinder):
                 else:
                     self.papers[index].abstract_freq[word_idx] = 1
 
+        if self.dictionary is None:
+            self.dictionary = set()
+
         self.paper_vectors = np.zeros([self.n_papers, self.word_dim])
         tqdm.pandas(desc="Building papers' vectors", unit='abstract', ncols=TQDM_NCOLS)
         df.progress_apply(_build_paper_vector, axis=1)
@@ -374,8 +377,8 @@ class PaperFinderTrainer(PaperFinder):
                 self.cluster_abstract_freq.append([])
 
     def convert_text_with_phrases(self, src_file: Path, dest_file: Path, column: str = 'abstract', keep_na: bool = True) -> None:
-        if 'csv' in src_file.suffix:
-            df = pd.read_csv(src_file, sep='|', dtype=str, keep_default_na=keep_na)
+        if 'tsv' in src_file.suffix:
+            df = pd.read_csv(src_file, sep='\t', dtype=str, keep_default_na=keep_na)
         else: # if 'feather' in src_file.suffix:
             df = pd.read_feather(src_file)
 
@@ -383,8 +386,8 @@ class PaperFinderTrainer(PaperFinder):
         tqdm.pandas(unit='word', desc='Replacing words by n-grams', ncols=TQDM_NCOLS)
         df[column] = df[column].astype('str').progress_apply(self._replace_words_by_ngrams)
 
-        if 'csv' in dest_file.suffix:
-            df.to_csv(dest_file, sep='|', index=False)
+        if 'tsv' in dest_file.suffix:
+            df.to_csv(dest_file, sep='\t', index=False)
         else: # if 'feather' in dest_file.suffix:
             df.to_feather(dest_file, compression='zstd')
 
@@ -475,8 +478,8 @@ class PaperFinderTrainer(PaperFinder):
                 )
 
         extension = paper_info_file.suffix
-        if 'csv' in extension:
-            df = pd.read_csv(paper_info_file, sep=';', keep_default_na=keep_na)
+        if 'tsv' in extension:
+            df = pd.read_csv(paper_info_file, sep='\t', keep_default_na=keep_na)
         elif 'feather' in extension:
             df = pd.read_feather(paper_info_file)
             if not keep_na:
