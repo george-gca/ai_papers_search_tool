@@ -6,6 +6,7 @@ from pathlib import Path
 SUPPORTED_CONFERENCES = [
     'aaai',
     'acl',
+    'aistats',
     'coling',
     'cvpr',
     'eacl',
@@ -29,6 +30,7 @@ SUPPORTED_CONFERENCES = [
     'siggraph-asia',
     'tacl',
     'tpami',
+    'uai',
     'wacv',
 ]
 
