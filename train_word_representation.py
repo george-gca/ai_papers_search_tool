@@ -9,28 +9,33 @@ from utils import CONFERENCES_PDFS, setup_log, SUPPORTED_CONFERENCES
 
 
 _logger = logging.getLogger(__name__)
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+locale.setlocale(locale.LC_ALL, "pt_BR.UTF-8")
 
 
 def main(args):
-    log_dir = Path('logs/').expanduser()
+    log_dir = Path("logs/").expanduser()
     log_dir.mkdir(exist_ok=True)
-    setup_log(args.log_level, log_dir / 'train_word_model.log')
+    setup_log(args.log_level, log_dir / "train_word_model.log")
 
     data_dir = Path(args.data_dir).expanduser()
     model_dir = Path(args.model_dir).expanduser()
 
-    p2v = PaperFinderTrainer(word_dim=args.word_dim, data_dir=data_dir, model_dir=model_dir,
-                             max_dictionary_words=args.max_dictionary_words)
+    p2v = PaperFinderTrainer(
+        word_dim=args.word_dim, data_dir=data_dir, model_dir=model_dir, max_dictionary_words=args.max_dictionary_words
+    )
 
     #####################################
 
     max_ngram = 6
 
     if args.build_dictionary:
-        _logger.print('\nStep 1: Removes rare words to build a suitable size of dictionary.')
+        _logger.print("\nStep 1: Removes rare words to build a suitable size of dictionary.")
 
-        corpus_files = (data_dir / c / str(y) / 'pdfs_clean.tsv' for c in CONFERENCES_PDFS for y in range(2017, datetime.date.today().year + 1))
+        corpus_files = (
+            data_dir / c / str(y) / "pdfs_clean.tsv"
+            for c in CONFERENCES_PDFS
+            for y in range(2017, datetime.date.today().year + 1)
+        )
         corpus_files = [c for c in corpus_files if c.exists()]
 
         for corpus_file in corpus_files:
@@ -40,187 +45,184 @@ def main(args):
 
         # removing 1st common word, since it is UNK
         n_common = 50
-        most_common_words = "\n".join(f'{k}: {v:n}' for k, v in p2v.count[1:n_common+1])
-        _logger.print(f'\nCheck {n_common} most common words:\n{most_common_words}')
+        most_common_words = "\n".join(f"{k}: {v:n}" for k, v in p2v.count[1 : n_common + 1])
+        _logger.print(f"\nCheck {n_common} most common words:\n{most_common_words}")
 
-        least_common_words = "\n".join(f'{k}: {v:n}' for k, v in p2v.count[-n_common:])
-        _logger.print(f'\nCheck {n_common} least common words:\n{least_common_words}')
+        least_common_words = "\n".join(f"{k}: {v:n}" for k, v in p2v.count[-n_common:])
+        _logger.print(f"\nCheck {n_common} least common words:\n{least_common_words}")
 
         #####################################
 
     if args.detect_ngrams:
-        _logger.print('\nStep 2: Detect n-grams by their appearance frequency. Then re-build a new corpus.')
+        _logger.print("\nStep 2: Detect n-grams by their appearance frequency. Then re-build a new corpus.")
         for i, n in enumerate(reversed(range(2, max_ngram + 1))):
-            p2v.detect_ngrams(n, args.ngram_threshold + i*args.ngram_threshold_step)
+            p2v.detect_ngrams(n, args.ngram_threshold + i * args.ngram_threshold_step)
 
-        corpus_ngram_file = data_dir / f'corpus_{args.max_dictionary_words}w.txt'
+        corpus_ngram_file = data_dir / f"corpus_{args.max_dictionary_words}w.txt"
         p2v.create_corpus_with_phrases(corpus_ngram_file)
         p2v.convert_text_with_phrases(
-            data_dir / 'abstracts_clean_pwc.feather',
-            data_dir / f'abstracts_{max_ngram}gram.feather',
-            )
+            data_dir / "abstracts_clean.feather",
+            data_dir / f"abstracts_{max_ngram}gram.feather",
+        )
 
-        abstract_files = (data_dir / c / str(y) / 'abstracts_clean.tsv' for c in SUPPORTED_CONFERENCES for y in range(2017, datetime.date.today().year + 1))
+        abstract_files = (
+            data_dir / c / str(y) / "abstracts_clean.tsv"
+            for c in SUPPORTED_CONFERENCES
+            for y in range(2017, datetime.date.today().year + 1)
+        )
         abstract_files = [c for c in abstract_files if c.exists()]
 
         for abstract_file in abstract_files:
-            p2v.convert_text_with_phrases(abstract_file, abstract_file.parent / f'abstracts_{max_ngram}gram.tsv')
+            p2v.convert_text_with_phrases(abstract_file, abstract_file.parent / f"abstracts_{max_ngram}gram.tsv")
 
         #####################################
 
     if args.train:
-        _logger.print('\nStep 3: Train word representation with fasttext.')
+        _logger.print("\nStep 3: Train word representation with fasttext.")
         p2v.train_words_model(
             corpus_ngram_file,
             n_words=args.max_dictionary_words,
             model=args.model,
             min_count=args.min_count,
-            )
+        )
         p2v.build_similar_dictionary()
 
     else:
-        p2v.load_words_model(str(model_dir / f'fasttext_{args.model}_{args.max_dictionary_words}w.bin'))
+        p2v.load_words_model(str(model_dir / f"fasttext_{args.model}_{args.max_dictionary_words}w.bin"))
 
     words_to_check = [
-        'bert',
-        'bert_based',
-        'capsule',
-        'catastrophic_forgetting',
-        'continual_learning',
-        'dataset',
-        'dall_e',
-        'explainability',
-        'explanatory_interactive_learning',
-        'gpt',
-        'incremental_learning',
-        'interactive_learning',
-        'interpretability',
-        'large_scale pre_training',
-        'midjourney',
-        'model_editing',
-        'multimodal_dataset',
-        'multimodal_feature',
-        'multimodal pre_training',
-        'new_dataset',
-        'new_multimodal_dataset',
-        'question_answering',
-        'pre_training',
-        'rationale',
-        'representation_learning',
-        'scene_graph',
-        'super_resolution',
-        'survey',
-        'transformer',
-        'transformer_based'
-        'visual_dialog',
-        'visual_dialog generative',
-        'visual_dialog pre_training',
-        'visual_dialog new_dataset',
-        'visual_entailment',
-        'visual_question_answering',
-        'visual_question_answering new_dataset',
-        'visual_reasoning',
-        'vqa',
-        ]
+        "bert",
+        "bert_based",
+        "capsule",
+        "catastrophic_forgetting",
+        "continual_learning",
+        "dataset",
+        "dall_e",
+        "explainability",
+        "explanatory_interactive_learning",
+        "gpt",
+        "incremental_learning",
+        "interactive_learning",
+        "interpretability",
+        "large_scale pre_training",
+        "midjourney",
+        "model_editing",
+        "multimodal_dataset",
+        "multimodal_feature",
+        "multimodal pre_training",
+        "new_dataset",
+        "new_multimodal_dataset",
+        "question_answering",
+        "pre_training",
+        "rationale",
+        "representation_learning",
+        "scene_graph",
+        "super_resolution",
+        "survey",
+        "transformer",
+        "transformer_basedvisual_dialog",
+        "visual_dialog generative",
+        "visual_dialog pre_training",
+        "visual_dialog new_dataset",
+        "visual_entailment",
+        "visual_question_answering",
+        "visual_question_answering new_dataset",
+        "visual_reasoning",
+        "vqa",
+    ]
 
-    _logger.print('\nChecking result. Finding similar words for:')
+    _logger.print("\nChecking result. Finding similar words for:")
     for word in words_to_check:
         most_similar_words = p2v.get_most_similar_words(word, 10)
-        most_similar_words = (f'{w}: {v:2.3f}' for v, w in most_similar_words)
+        most_similar_words = (f"{w}: {v:2.3f}" for v, w in most_similar_words)
         most_similar_words = "\n\t".join(most_similar_words)
-        _logger.print(f'\n{word}\n\t{most_similar_words}')
+        _logger.print(f"\n{word}\n\t{most_similar_words}")
 
     #####################################
 
-    _logger.print('\nStep 4: Build paper representation vectors with fasttext.')
+    _logger.print("\nStep 4: Build paper representation vectors with fasttext.")
     if args.min_year == 0:
         year = None
     else:
         year = args.min_year
 
     if args.ignore_arxiv_papers:
-        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather',
-                                suffix='_pwc',
-                                filter_conferences={'arxiv', 'none'},
-                                filter_year=year)
+        p2v.build_paper_vectors(
+            data_dir / f"abstracts_{max_ngram}gram.feather", filter_conferences={"arxiv", "none"}, filter_year=year
+        )
     else:
-        p2v.build_paper_vectors(data_dir / f'abstracts_{max_ngram}gram.feather', suffix='_pwc', filter_year=year)
+        p2v.build_paper_vectors(data_dir / f"abstracts_{max_ngram}gram.feather", filter_year=year)
 
-    p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.word_dim}dims_pwc')
+    p2v.save_paper_vectors(f"_{args.max_dictionary_words}w_{args.word_dim}dims")
 
     #####################################
 
-    _logger.print(
-        '\nStep 5: Reduce dimensions and then apply k-means clustering.')
+    _logger.print("\nStep 5: Reduce dimensions and then apply k-means clustering.")
 
     p2v.reduce_paper_vectors_dim(args.paper_dim, perplexity=args.perplexity)
-    p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.paper_dim}dims_pwc')
+    p2v.save_paper_vectors(f"_{args.max_dictionary_words}w_{args.paper_dim}dims")
 
     p2v.clustering_papers(clusters=args.clusters)
-    p2v.save_paper_vectors(f'_{args.max_dictionary_words}w_{args.clusters}_clusters_pwc')
+    p2v.save_paper_vectors(f"_{args.max_dictionary_words}w_{args.clusters}_clusters")
 
-    not_informative_words = [
-        'data',
-        'learning',
-        'method',
-        'model',
-        'network',
-        'problem',
-        'result',
-        'task',
-        'training'
-    ]
+    not_informative_words = ["data", "learning", "method", "model", "network", "problem", "result", "task", "training"]
     n_keywords = 15
     for i in range(args.clusters):
         cluster_keywords = p2v.cluster_abstract_freq[i]
-        cluster_keywords = [p2v.abstract_words[w] for w, _ in cluster_keywords if w not in not_informative_words][:n_keywords]
-        _logger.print(f'cluster {i+1:02d} keywords: {", ".join(cluster_keywords)}')
+        cluster_keywords = [p2v.abstract_words[w] for w, _ in cluster_keywords if w not in not_informative_words][
+            :n_keywords
+        ]
+        _logger.print(f"cluster {i + 1:02d} keywords: {', '.join(cluster_keywords)}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', type=str, default='data',
-                        help='directory for the input data')
-    parser.add_argument('--model_dir', type=str, default='model_data',
-                        help='directory for saving the model')
+    parser.add_argument("--data_dir", type=str, default="data", help="directory for the input data")
+    parser.add_argument("--model_dir", type=str, default="model_data", help="directory for saving the model")
 
     # args for building corpus
-    parser.add_argument('-d', '--max_dictionary_words', type=int,
-                        default=50_000, help='max words to save in dictionary')
-    parser.add_argument('-t', '--ngram_threshold', type=int, default=1_000,
-                        help='minimum number of occurrences of n-gram to consider as a new term')
-    parser.add_argument('--ngram_threshold_step', type=int, default=0,
-                        help='increase threshold as ngram size decreases')
-    parser.add_argument('-y', '--min_year', type=int, default=0,
-                        help='minimum year of the paper to be considered')
+    parser.add_argument("-d", "--max_dictionary_words", type=int, default=50_000, help="max words to save in dictionary")
+    parser.add_argument(
+        "-t",
+        "--ngram_threshold",
+        type=int,
+        default=1_000,
+        help="minimum number of occurrences of n-gram to consider as a new term",
+    )
+    parser.add_argument("--ngram_threshold_step", type=int, default=0, help="increase threshold as ngram size decreases")
+    parser.add_argument("-y", "--min_year", type=int, default=0, help="minimum year of the paper to be considered")
 
     # args for training / clustering
-    parser.add_argument('-m', '--model', type=str, default='skipgram',
-                        choices=('skipgram', 'cbow'),
-                        help='model for training word representation')
-    parser.add_argument('-w', '--word_dim', type=int, default=150,
-                        help='dimensions for word representation')
-    parser.add_argument('--min_count', type=int, default=10,
-                        help='minimal number of word occurences')
-    parser.add_argument('-p', '--paper_dim', type=int, default=3,
-                        help='dimensions for paper representation')
-    parser.add_argument('-x', '--perplexity', type=int,
-                        default=25, help='perplexity param for t-SNE')
-    parser.add_argument('-c', '--clusters', type=int, default=26,
-                        help='number of clusters to be divided')
-    parser.add_argument('-l', '--log_level', type=str, default='warning',
-                        choices=('debug', 'info', 'warning',
-                                 'error', 'critical', 'print'),
-                        help='log level to debug')
-    parser.add_argument('-i', '--ignore_arxiv_papers', action='store_true',
-                        help='ignore papers from arXiv and without conference name when building paper vectors')
-    parser.add_argument('--build_dictionary', action='store_true',
-                        help='build dictionary')
-    parser.add_argument('--detect_ngrams', action='store_true',
-                        help='detect n-grams')
-    parser.add_argument('--train', action='store_true',
-                        help='train words model')
-
+    parser.add_argument(
+        "-m",
+        "--model",
+        type=str,
+        default="skipgram",
+        choices=("skipgram", "cbow"),
+        help="model for training word representation",
+    )
+    parser.add_argument("-w", "--word_dim", type=int, default=150, help="dimensions for word representation")
+    parser.add_argument("--min_count", type=int, default=10, help="minimal number of word occurences")
+    parser.add_argument("-p", "--paper_dim", type=int, default=3, help="dimensions for paper representation")
+    parser.add_argument("-x", "--perplexity", type=int, default=25, help="perplexity param for t-SNE")
+    parser.add_argument("-c", "--clusters", type=int, default=26, help="number of clusters to be divided")
+    parser.add_argument(
+        "-l",
+        "--log_level",
+        type=str,
+        default="warning",
+        choices=("debug", "info", "warning", "error", "critical", "print"),
+        help="log level to debug",
+    )
+    parser.add_argument(
+        "-i",
+        "--ignore_arxiv_papers",
+        action="store_true",
+        help="ignore papers from arXiv and without conference name when building paper vectors",
+    )
+    parser.add_argument("--build_dictionary", action="store_true", help="build dictionary")
+    parser.add_argument("--detect_ngrams", action="store_true", help="detect n-grams")
+    parser.add_argument("--train", action="store_true", help="train words model")
 
     args = parser.parse_args()
 
