@@ -170,15 +170,7 @@ class PaperFinderTrainer(PaperFinder):
         self.words += words
 
     def _remove_sequence_of_unk(self, words: list[str]) -> list[str]:
-        new_words = []
-        for w in words:
-            if w == self.unk:
-                if len(new_words) == 0 or new_words[-1] != self.unk:
-                    new_words.append(w)
-            else:
-                new_words.append(w)
-
-        return new_words
+        return list(w for i, w in enumerate(words) if w != self.unk or i == 0 or words[i - 1] != self.unk)
 
     def build_dictionary(self, rebuild=False) -> None:
         with Timer(name="Counting words occurrences"):
